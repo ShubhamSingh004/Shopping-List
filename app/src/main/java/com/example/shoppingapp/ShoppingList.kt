@@ -1,5 +1,7 @@
 package com.example.shoppingapp
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
@@ -30,7 +34,7 @@ data class ShoppingItem(var id: Int,
 
 @Composable
 fun ShoppingApp(paddingValues: PaddingValues) {
-    var shoppingItems by remember { mutableStateOf(listOf<ShoppingItem>()) }
+    var shoppingItemsList by remember { mutableStateOf(listOf<ShoppingItem>()) }
     var showDialog by remember { mutableStateOf(false) }
     var itemName by remember { mutableStateOf("") }
     var itemQuantity by remember { mutableStateOf("") }
@@ -54,8 +58,8 @@ fun ShoppingApp(paddingValues: PaddingValues) {
         Spacer(modifier = Modifier.padding(8.dp))
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(count = 0) {
-
+            items(shoppingItemsList) { item ->
+                ShoppingListItem(item, {}, {})
             }
         }
     }
@@ -75,7 +79,7 @@ fun ShoppingApp(paddingValues: PaddingValues) {
 
                             if(itemName.isNotBlank() && itemQuantity.toIntOrNull() != null){
                                 val newItem: ShoppingItem = ShoppingItem(
-                                    shoppingItems.size + 1,
+                                    shoppingItemsList.size + 1,
                                     itemName,
                                     itemQuantity.toDouble()
                                 )
@@ -85,6 +89,8 @@ fun ShoppingApp(paddingValues: PaddingValues) {
                                 showDialog = false
                                 invalidItemQualityDisplay = false
                                 invalidItemNameDisplay = false
+
+                                shoppingItemsList += newItem
                             }
                         }) { Text("Add")}
 
@@ -124,5 +130,22 @@ fun ShoppingApp(paddingValues: PaddingValues) {
                             modifier = Modifier.fillMaxWidth().padding(8.dp))
                 }
             })
+    }
+}
+
+
+@Composable
+fun ShoppingListItem(
+    item: ShoppingItem,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
+){
+    Row(modifier = Modifier.fillMaxWidth()
+                            .padding(8.dp)
+                            .border(
+                                border = BorderStroke(width = 2.dp, color = Color.LightGray),
+                                shape = RoundedCornerShape(20)
+                            )) {
+        Text(item.name, modifier = Modifier.padding(2.dp))
     }
 }
