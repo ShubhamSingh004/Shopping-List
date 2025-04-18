@@ -1,21 +1,15 @@
 package com.example.shoppingapp
 
+// Importing necessary Compose UI components and tools
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -25,33 +19,39 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 
+// Data class representing a shopping item
 data class ShoppingItem(
-    var id: Int,
-    var name: String,
-    var quantity: Double,
-    var isEditing: Boolean = false
+    var id: Int,                  // Unique ID for the item
+    var name: String,             // Name of the item
+    var quantity: Double,         // Quantity of the item
+    var isEditing: Boolean = false // Flag to track if item is in editing mode
 )
 
+// Main composable function for the Shopping App
 @Composable
 fun ShoppingApp(paddingValues: PaddingValues) {
+    // State to hold list of shopping items
     var shoppingItemsList by remember { mutableStateOf(listOf<ShoppingItem>()) }
+
+    // Dialog visibility state
     var showDialog by remember { mutableStateOf(false) }
+
+    // States for input fields in dialog
     var itemName by remember { mutableStateOf("") }
     var itemQuantity by remember { mutableStateOf("") }
 
+    // Validation error flags
     var invalidItemNameDisplay by remember { mutableStateOf(false) }
     var invalidItemQuantityDisplay by remember { mutableStateOf(false) }
 
+    // UI layout
     Column(
         modifier = Modifier
             .padding(paddingValues)
@@ -59,6 +59,7 @@ fun ShoppingApp(paddingValues: PaddingValues) {
         verticalArrangement = Arrangement.Center
     ) {
 
+        // Button to open "Add Item" dialog
         Button(
             onClick = { showDialog = true },
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -68,14 +69,18 @@ fun ShoppingApp(paddingValues: PaddingValues) {
 
         Spacer(modifier = Modifier.padding(8.dp))
 
+        // Display the list of shopping items
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(shoppingItemsList) { item ->
                 if (item.isEditing) {
+                    // Show editor if item is being edited
                     ShoppingItemEditor(
                         item = item,
                         onEditComplete = { editedName, editedQuantity ->
+                            // Turn off editing mode for all items
                             shoppingItemsList = shoppingItemsList.map { it.copy(isEditing = false) }
 
+                            // Find the item and update its details
                             val editedItem = shoppingItemsList.find { it.id == item.id }
                             editedItem?.let {
                                 it.name = editedName
@@ -84,15 +89,17 @@ fun ShoppingApp(paddingValues: PaddingValues) {
                         }
                     )
                 } else {
+                    // Display item in regular (non-editing) mode
                     ShoppingListItem(
                         item = item,
                         onEditClick = {
+                            // Enable editing for the selected item
                             shoppingItemsList = shoppingItemsList.map {
-                                // finding out which item we are editing
                                 it.copy(isEditing = (it.id == item.id))
                             }
                         },
                         onDeleteClick = {
+                            // Remove item from list
                             shoppingItemsList = shoppingItemsList - item
                         }
                     )
@@ -101,6 +108,7 @@ fun ShoppingApp(paddingValues: PaddingValues) {
         }
     }
 
+    // Show Add Item dialog if triggered
     if (showDialog) {
         AlertDialog(
             confirmButton = {
@@ -110,14 +118,17 @@ fun ShoppingApp(paddingValues: PaddingValues) {
                         .padding(8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    // Add button logic
                     Button(onClick = {
+                        // Validation
                         if (itemName.isBlank()) {
                             invalidItemNameDisplay = true
                         }
-                        if (itemQuantity.toDoubleOrNull() == null)
+                        if (itemQuantity.toDoubleOrNull() == null) {
                             invalidItemQuantityDisplay = true
+                        }
 
-
+                        // If input is valid, create new item
                         if (itemName.isNotBlank() && itemQuantity.toDoubleOrNull() != null) {
                             val newItem = ShoppingItem(
                                 shoppingItemsList.size + 1,
@@ -125,16 +136,19 @@ fun ShoppingApp(paddingValues: PaddingValues) {
                                 itemQuantity.toDouble()
                             )
 
+                            // Reset dialog and input fields
                             itemName = ""
                             itemQuantity = ""
                             showDialog = false
                             invalidItemQuantityDisplay = false
                             invalidItemNameDisplay = false
 
+                            // Add new item to list
                             shoppingItemsList += newItem
                         }
                     }) { Text("Add") }
 
+                    // Cancel button
                     Button(onClick = {
                         showDialog = false
                     }) { Text("Cancel") }
@@ -144,6 +158,7 @@ fun ShoppingApp(paddingValues: PaddingValues) {
             title = { Text("Add Shopping Item") },
             text = {
                 Column {
+                    // Input for item name
                     OutlinedTextField(
                         value = itemName,
                         onValueChange = { itemName = it },
@@ -152,6 +167,7 @@ fun ShoppingApp(paddingValues: PaddingValues) {
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    // Error message if name is invalid
                     if (invalidItemNameDisplay)
                         Text(
                             "Item name cannot be blank",
@@ -161,14 +177,17 @@ fun ShoppingApp(paddingValues: PaddingValues) {
                                 .padding(8.dp)
                         )
 
+                    // Input for quantity
                     OutlinedTextField(
                         value = itemQuantity,
                         onValueChange = { itemQuantity = it },
                         label = { Text("Item Quantity") },
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
 
+                    // Error message if quantity is invalid
                     if (invalidItemQuantityDisplay)
                         Text(
                             "Item name should be a number",
@@ -182,7 +201,7 @@ fun ShoppingApp(paddingValues: PaddingValues) {
     }
 }
 
-
+// Composable to display a shopping item in list view
 @Composable
 fun ShoppingListItem(
     item: ShoppingItem,
@@ -198,8 +217,11 @@ fun ShoppingListItem(
                 shape = RoundedCornerShape(20)
             )
     ) {
+        // Display item name and quantity
         Text(item.name, modifier = Modifier.padding(16.dp))
         Text(item.quantity.toString(), modifier = Modifier.padding(16.dp))
+
+        // Buttons for edit and delete
         Row(
             modifier = Modifier
                 .padding(8.dp)
@@ -209,20 +231,20 @@ fun ShoppingListItem(
             IconButton(onClick = onEditClick) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "This is the edit button"
+                    contentDescription = "Edit item"
                 )
             }
             IconButton(onClick = onDeleteClick) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "This is the delete button"
+                    contentDescription = "Delete item"
                 )
             }
         }
     }
 }
 
-
+// Composable to edit a shopping item
 @Composable
 fun ShoppingItemEditor(item: ShoppingItem, onEditComplete: (String, Double?) -> Unit) {
     var editedName by remember { mutableStateOf(item.name) }
@@ -235,6 +257,7 @@ fun ShoppingItemEditor(item: ShoppingItem, onEditComplete: (String, Double?) -> 
             .background(color = Color.White),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
+        // Input fields for name and quantity
         Column(
             modifier = Modifier
                 .fillMaxWidth(0.7f)
@@ -255,14 +278,16 @@ fun ShoppingItemEditor(item: ShoppingItem, onEditComplete: (String, Double?) -> 
                 modifier = Modifier
                     .wrapContentSize()
                     .padding(8.dp),
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
         }
 
+        // Save button to confirm edits
         Button(
             onClick = {
                 isEditing = false
-                onEditComplete(editedName, (editedQuantity.toDoubleOrNull() ?: 0.0))
+                onEditComplete(editedName, editedQuantity.toDoubleOrNull() ?: 0.0)
             },
             modifier = Modifier.fillMaxWidth()
         ) {
