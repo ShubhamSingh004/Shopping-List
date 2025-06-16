@@ -257,6 +257,24 @@ fun ShoppingApp(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
 
+                    Button(onClick = {
+                        if (locationUtils.hasLocationPermission(context)) {
+                            locationUtils.requestLocationUpdates(viewModel)
+                            navController.navigate("locationscreen") {
+                                this.launchSingleTop
+                            }
+                        } else {
+                            requestPermissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                                    Manifest.permission.ACCESS_FINE_LOCATION
+                                )
+                            )
+                        }
+                    }) {
+                        Text("Address")
+                    }
+
                     // Error message if quantity is invalid
                     if (invalidItemQuantityDisplay)
                         Text(
