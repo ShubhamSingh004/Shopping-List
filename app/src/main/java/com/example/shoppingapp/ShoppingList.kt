@@ -1,10 +1,23 @@
 package com.example.shoppingapp
 
 // Importing necessary Compose UI components and tools
+import android.Manifest
+import android.content.Context
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,30 +26,46 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.navigation.NavController
+
 
 // Data class representing a shopping item
 data class ShoppingItem(
     var id: Int,                  // Unique ID for the item
     var name: String,             // Name of the item
     var quantity: Double,         // Quantity of the item
-    var isEditing: Boolean = false // Flag to track if item is in editing mode
+    var isEditing: Boolean = false, // Flag to track if item is in editing mode
+    var address: String = ""
 )
 
 // Main composable function for the Shopping App
 @Composable
-fun ShoppingApp(paddingValues: PaddingValues) {
+fun ShoppingApp(
+    paddingValues: PaddingValues,
+    locationUtils: LocationUtils,
+    viewModel: LocationViewModel,
+    navController: NavController,
+    context: Context,
+    address: String
+) {
     // State to hold list of shopping items
     var shoppingItemsList by remember { mutableStateOf(listOf<ShoppingItem>()) }
 
@@ -50,6 +79,47 @@ fun ShoppingApp(paddingValues: PaddingValues) {
     // Validation error flags
     var invalidItemNameDisplay by remember { mutableStateOf(false) }
     var invalidItemQuantityDisplay by remember { mutableStateOf(false) }
+
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { permissions ->
+            if (permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+                &&
+                permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+            ) {
+                // we have permission
+                locationUtils.requestLocationUpdates(viewModel = viewModel)
+            } else {
+                // we do not have permission
+                val rationaleRequired = ActivityCompat.shouldShowRequestPermissionRationale(
+                    context as MainActivity,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) || ActivityCompat.shouldShowRequestPermissionRationale(
+                    context as MainActivity,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+
+                if (rationaleRequired) {
+                    Toast.makeText(
+                        context,
+                        "Location Permission Required for this feature",
+                        Toast.LENGTH_LONG
+                    )
+                        .show()
+                } else {
+                    Toast.makeText(
+                        context,
+                        "Location Permission Required. Enable in Settings",
+                        Toast.LENGTH_LONG
+                    )
+                        .show()
+                }
+            }
+
+        }
+    )
+
 
     // UI layout
     Column(
@@ -218,8 +288,21 @@ fun ShoppingListItem(
             )
     ) {
         // Display item name and quantity
-        Text(item.name, modifier = Modifier.padding(16.dp))
-        Text(item.quantity.toString(), modifier = Modifier.padding(16.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(8.dp)
+        ) {
+            Row {
+                Text(item.name, modifier = Modifier.padding(16.dp))
+                Text(item.quantity.toString(), modifier = Modifier.padding(16.dp))
+            }
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Icon(imageVector = Icons.Default.LocationOn, contentDescription = "")
+                Text(item.address)
+            }
+        }
 
         // Buttons for edit and delete
         Row(

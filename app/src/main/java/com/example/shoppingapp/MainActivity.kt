@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ShoppingAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ShoppingApp(paddingValues = innerPadding)
+//                    ShoppingApp(paddingValues = innerPadding)
                 }
             }
         }
