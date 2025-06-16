@@ -155,6 +155,7 @@ fun ShoppingApp(
                             editedItem?.let {
                                 it.name = editedName
                                 it.quantity = editedQuantity ?: 0.0
+                                it.address = address
                             }
                         }
                     )
@@ -203,7 +204,8 @@ fun ShoppingApp(
                             val newItem = ShoppingItem(
                                 shoppingItemsList.size + 1,
                                 itemName,
-                                itemQuantity.toDouble()
+                                itemQuantity.toDouble(),
+                                address = address
                             )
 
                             // Reset dialog and input fields

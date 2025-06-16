@@ -1,7 +1,5 @@
 package com.example.shoppingapp
 
-import com.google.android.gms.common.api.internal.ApiKey
-import com.google.android.gms.maps.model.LatLng
 import retrofit2.http.GET
 import retrofit2.http.Query
 
